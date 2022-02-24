@@ -1,0 +1,5 @@
+transactions.kafka:
+  share: "yes"
+  trigdata: lowercasetrigdata 
+  trigdpth: 7
+  usage: normal

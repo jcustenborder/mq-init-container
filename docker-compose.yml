@@ -1,0 +1,18 @@
+services:
+  mq:
+    image: "ibmcom/mq:9.2.4.0-r1"
+    environment:
+      LICENSE: accept
+      MQ_QMGR_NAME: qmgr1
+    ports:
+      - "9443:9443"
+  mq-init:
+    build: .
+    environment:
+      QUEUE_MGR_URL: https://mq:9443/
+      DATA_DIRECTORY: /data
+      USERNAME: admin
+      PASSWORD: passw0rd
+      QUEUE_MGR_NAME: qmgr1
+    volumes:
+      - ./data:/data:ro
