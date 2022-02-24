@@ -57,9 +57,10 @@ url = urljoin(BASE_URL, QUEUE_MGR_URL)
 queues_path = path.join(DATA_DIRECTORY, "queues.yml")
 topics_path = path.join(DATA_DIRECTORY, "topics.yml")
 subscriptions_path = path.join(DATA_DIRECTORY, "subscriptions.yml")
+permissions_path = path.join(DATA_DIRECTORY, "permissions.yml")
 
 
-def run_command_json(command, qualifier, name=None, parameters=None):
+def run_command_json(command, qualifier=None, name=None, parameters=None):
     headers = {
         "Content-Type": "application/json",
         "ibm-mq-rest-csrf-token": "really?"
@@ -67,8 +68,9 @@ def run_command_json(command, qualifier, name=None, parameters=None):
     payload = {
         "type": "runCommandJSON",
         "command": command,
-        "qualifier": qualifier,
     }
+    if qualifier:
+        payload["qualifier"] = qualifier
     if parameters:
         payload["parameters"] = parameters
     if name:
@@ -88,11 +90,24 @@ def apply_data(type, data_path):
             data = yaml.safe_load(file)
             logging.debug("%s data loaded:\n%s", type, data)
 
-            for name, parameters in data.items():
-                logging.info("Processing %s: %s", type, name)
-                run_command_json("define", type, name, parameters)
+        for name, parameters in data.items():
+            logging.info("Processing %s: %s", type, name)
+            run_command_json("define", type, name, parameters)
     else:
         logging.warning("%s data was not found %s", type, data_path)
+
+
+def apply_permissions(data_path):
+    if path.exists(data_path):
+        with open(data_path, 'r') as file:
+            data = yaml.safe_load(file)
+            logging.debug("%s data loaded:\n%s", "permission", data)
+
+            for name, parameters in data.items():
+                parameters["profile"] = name
+                run_command_json("set", "authrec", None, parameters)
+    else:
+        logging.warning("%s data was not found %s", "permission", data_path)
 
 
 MAX_ATTEMPTS = 30
@@ -112,3 +127,4 @@ while count < MAX_ATTEMPTS:
 apply_data("qlocal", queues_path)
 apply_data("topic", topics_path)
 apply_data("sub", subscriptions_path)
+apply_permissions(permissions_path)
