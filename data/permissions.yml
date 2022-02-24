@@ -1,0 +1,10 @@
+transactions:
+  objtype: topic
+  principal: app
+  authadd:
+    - pub
+transactions.kafka:
+  objtype: queue
+  principal: app
+  authadd:
+    - get
